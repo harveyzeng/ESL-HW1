@@ -35,3 +35,6 @@ $ riscv64-unknown-elf-gcc -o hello hello.c
 
 $ spike pk hello
 
+the outcome is the hello_world.png
+
+
