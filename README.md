@@ -89,12 +89,83 @@ Run this command to start the build process:
     $ make -j16 ARCH=riscv
 
 # Building BusyBox
+#download Busybox source code
 
+    $ git clone git://git.busybox.net/busybox
+    
+    $ git checkout -b 1_23_stable origin/1_23_stable
+    
+    $ make ARCH=riscv CROSS_COMPILE=riscv64-unknown-linux-gnu- menuconfig
 
+#menuconfig setting
 
+        Busybox Settings  --->
+        Build Options  --->
+                [*] Build BusyBox as a static binary (no shared libs)
 
+        Init Utilities  --->
+                [*] init
+        
+        Networking Utilities  --->
+                [ ] inetd
+        
+        Shells  --->
+                [*] ash
 
+#compile busybox
 
+        $ make ARCH=riscv CROSS_COMPILE=riscv64-unknown-linux-gnu-
+        
+#install busybox
+        
+        $ make ARCH=riscv CROSS_COMPILE=riscv64-unknown-linux-gnu- install
+
+#Creating a Root Disk Image
+    
+        # sudo dd if=/dev/zero of=root.bin bs=1M count=64
+        
+        # sudo  mkfs.ext2 -F root.bin
+#mount root.bin to tmp/root directory
+        
+        # mkdir -p /tmp/root
+        
+        # sudo mount root.bin /tmp/root
+        
+            
+#copy _install directory to /tmp/root
+
+        $ rsync -avr _install/* /tmp/root
+
+#create some necessary directory
+        
+        $ cd /tmp/root && mkdir -p proc sys dev etc/init.d
+
+#edit the start script
+
+        $ vim /tmp/root/etc/init.d/rcS
+        
+#add these in the rcS file
+
+        #!/bin/sh
+        
+        mount -t proc none /proc
+        
+        mount -t sysfs none /sys
+        
+        /sbin/mdev -s
+
+#change the permissions of the rcS file
+
+        $ chmod +x /tmp/root/etc/init.d/rcS
+        
+#umount the /tmp/root
+
+        $ sudo umount /tmp/root
+        
+# run the linux
+
+        $ spike +disk=root.bin bbl vmlinux
+        
 the outcome is the linux.png
 
 
